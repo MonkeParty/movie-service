@@ -14,7 +14,7 @@ app = FastAPI()
 
 
 @app.get('/{id}')
-def get_movie_info(id: int, db: sql.orm.Session = Depends(get_connection)):
+async def get_movie_info(id: int, db: sql.orm.Session = Depends(get_connection)):
     statement = sql.select(Movie).filter_by(id=id)
     return db.execute(statement).scalars().all()
 
