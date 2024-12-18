@@ -21,17 +21,17 @@ class Rating(Base):
 class Link(Base):
     __tablename__ = 'links'
 
-    movie_id = Column(Integer, ForeignKey('movies.id'), primary_key=True, index=True)
-    imdb_id = Column(Integer, primary_key=True, index=True)
-    tmdb_id = Column(Integer, primary_key=True, index=True)
+    movie_id = Column(Integer, ForeignKey('movies.id'), primary_key=True)
+    imdb_id = Column(Integer)
+    tmdb_id = Column(Integer)
 
 class Tag(Base):
     __tablename__ = 'tags'
 
-    user_id = Column(Integer, ForeignKey('ratings.user_id'), primary_key=True)
+    user_id = Column(Integer, primary_key=True)
     movie_id = Column(Integer, ForeignKey('movies.id'), primary_key=True)
-    tag = Column(String, nullable=False)
-    timestamp = Column(Time, nullable=False)
+    tag = Column(String, primary_key=True)
+    timestamp = Column(Time, nullable=False, primary_key=True)
 
 
 class GenomeTag(Base):

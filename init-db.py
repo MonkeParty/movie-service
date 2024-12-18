@@ -8,9 +8,7 @@ from app.database.models import *
 
 
 def is_database_initialized():
-    inspector = inspect(engine)
-    tables = inspector.get_table_names()
-    return 'movies' in tables
+    return 'movies' in inspect(engine).get_table_names()
 
 def populate_with_csv():
     # TODO: do something about it
@@ -23,24 +21,27 @@ def populate_with_csv():
     genome_tags = pd.read_csv(Path.cwd()/'initial-db'/'genome_tags.csv')
     # genome_scores = pd.read_csv(Path.cwd()/'initial-db'/'genome_scores.csv')
 
-    movies.rename(columns={'movieId': 'id'})
-    # ratings.rename(columns={'userId': 'user_id', 'movieId': 'movie_id'})
-    links.rename(columns={'movieId': 'movie_id', 'imdbId': 'imdb_id', 'tmdbId': 'tmdb_id'})
-    tags.rename(columns={'userId': 'user_id', 'movieId': 'movie_id'})
-    genome_tags.rename(columns={'tagId': 'id'})
-    # genome_scores.rename(columns={'movieId': 'movie_id', 'tagId': 'tag_id'})
+    movies.rename(columns={'movieId': 'id'}, inplace=True)
+    # ratings.rename(columns={'userId': 'user_id', 'movieId': 'movie_id'}, inplace=True)
+    links.rename(columns={'movieId': 'movie_id', 'imdbId': 'imdb_id', 'tmdbId': 'tmdb_id'}, inplace=True)
+    tags.rename(columns={'userId': 'user_id', 'movieId': 'movie_id'}, inplace=True)
+    genome_tags.rename(columns={'tagId': 'id'}, inplace=True)
+    # genome_scores.rename(columns={'movieId': 'movie_id', 'tagId': 'tag_id'}, inplace=True)
 
-    movies.to_sql(name=Movie.__tablename__, con=engine)
-    # ratings.to_sql(name=Rating.__tablename__, con=engine)
-    links.to_sql(name=Link.__tablename__, con=engine)
-    tags.to_sql(name=Tag.__tablename__, con=engine)
-    genome_tags.to_sql(name=GenomeTag.__tablename__, con=engine)
-    # genome_scores.to_sql(name=GenomeScore.__tablename__, con=engine)
+    tags.dropna(inplace=True)
+
+    movies.to_sql(name=Movie.__tablename__, con=engine, if_exists='append', index=False, method='multi')
+    # ratings.to_sql(name=Rating.__tablename__, con=engine, if_exists='append', index=False, method='multi')
+    links.to_sql(name=Link.__tablename__, con=engine, if_exists='append', index=False, method='multi')
+    tags.to_sql(name=Tag.__tablename__, con=engine, if_exists='append', index=False, method='multi')
+    genome_tags.to_sql(name=GenomeTag.__tablename__, con=engine, if_exists='append', index=False, method='multi')
+    # genome_scores.to_sql(name=GenomeScore.__tablename__, con=engine, if_exists='append', index=False, method='multi')
 
 
 def initialize_database():
     if is_database_initialized():
         Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
     populate_with_csv()
 
 initialize_database()
