@@ -8,41 +8,36 @@ class Movie(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
-    genres = Column(String, nullable=False)
 
 class Rating(Base):
     __tablename__ = 'ratings'
 
     user_id = Column(Integer, primary_key=True)
-    movie_id = Column(Integer, ForeignKey('movies.id'))
+    movie_id = Column(Integer, ForeignKey('movies.id'), primary_key=True)
     rating = Column(Float, nullable=False)
     timestamp = Column(Time, nullable=False)
 
-class Link(Base):
-    __tablename__ = 'links'
+class Genre(Base):
+    __tablename__ = 'genres'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False, unique=True)
+
+class MovieGenre(Base):
+    __tablename__ = 'movie_genres'
 
     movie_id = Column(Integer, ForeignKey('movies.id'), primary_key=True)
-    imdb_id = Column(Integer)
-    tmdb_id = Column(Integer)
+    genre_id = Column(Integer, ForeignKey('genres.id'), primary_key=True)
 
 class Tag(Base):
     __tablename__ = 'tags'
 
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False, unique=True)
+
+class MovieTag(Base):
+    __tablename__ = 'movie_tags'
+
     user_id = Column(Integer, primary_key=True)
     movie_id = Column(Integer, ForeignKey('movies.id'), primary_key=True)
-    tag = Column(String, primary_key=True)
-    timestamp = Column(Time, nullable=False, primary_key=True)
-
-
-class GenomeTag(Base):
-    __tablename__ = 'genome_tags'
-
-    id = Column(Integer, primary_key=True)
-    tag = Column(String, nullable=False)
-
-class GenomeScore(Base):
-    __tablename__ = 'genome_scores'
-
-    movie_id = Column(Integer, ForeignKey('movies.id'), primary_key=True)
-    tag_id = Column(Integer, ForeignKey('genome_tags.id'))
-    relevance = Column(Float, nullable=False)
+    tag_id = Column(Integer, ForeignKey('tags.id'), primary_key=True)
