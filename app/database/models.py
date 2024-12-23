@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Time, ForeignKey, DateTime
+from sqlalchemy import Column, Index, Integer, String, Float, Time, ForeignKey, DateTime, func
 
 from .connection import Base
 
@@ -22,6 +22,8 @@ class Genre(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False, unique=True)
+
+    __table_args__ = (Index('ix_genres_name_lower', func.lower(name), unique=True),)
 
 class MovieGenre(Base):
     __tablename__ = 'movie_genres'

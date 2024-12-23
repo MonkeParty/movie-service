@@ -14,4 +14,6 @@ class Settings(BaseSettings):
     jwt_secret_key: str
     jwt_algorithm: str
 
+    auth_service_address: str
+
 settings = Settings()

@@ -8,10 +8,10 @@ def populate_database():
     session = connection.session()
 
     try:
-        genres = ['Action', 'Comedy', 'Drama', 'Horror', 'Sci-Fi']
+        genres = ['action', 'comedy', 'drama', 'horror', 'sci-fi']
         session.add_all([Genre(name=genre) for genre in genres])
 
-        tags = ['Classic', 'Funny', 'Suspense', 'Thriller', 'Romantic']
+        tags = ['classic', 'funny', 'suspense', 'thriller', 'romantic']
         session.add_all([Tag(name=tag) for tag in tags])
 
         movies = [
