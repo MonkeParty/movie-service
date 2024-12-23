@@ -5,7 +5,6 @@ from ..config import settings
 
 
 def get_current_user_id(token: str = Header(..., alias="Authorization")):
-    print(token)
     if not token.startswith("Bearer "):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or missing Authorization header")
     try:

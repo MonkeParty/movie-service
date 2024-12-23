@@ -24,9 +24,9 @@ def populate_database():
 
         # add ratings
         ratings = [
-            {'user_id': 1, 'movie_id': 1, 'rating': 5.0, 'timestamp': datetime.now().time()},
-            {'user_id': 2, 'movie_id': 2, 'rating': 4.5, 'timestamp': datetime.now().time()},
-            {'user_id': 3, 'movie_id': 3, 'rating': 4.8, 'timestamp': datetime.now().time()}
+            {'user_id': 1, 'movie_id': 1, 'rating': 5.0, 'time': datetime.now()},
+            {'user_id': 2, 'movie_id': 2, 'rating': 4.5, 'time': datetime.now()},
+            {'user_id': 3, 'movie_id': 3, 'rating': 4.8, 'time': datetime.now()}
         ]
         session.add_all([Rating(**rating) for rating in ratings])
 

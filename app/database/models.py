@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Time, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, Time, ForeignKey, DateTime
 
 from .connection import Base
 
@@ -15,7 +15,7 @@ class Rating(Base):
     user_id = Column(Integer, primary_key=True)
     movie_id = Column(Integer, ForeignKey('movies.id'), primary_key=True)
     rating = Column(Float, nullable=False)
-    timestamp = Column(Time, nullable=False)
+    time = Column(DateTime, nullable=False)
 
 class Genre(Base):
     __tablename__ = 'genres'
@@ -41,3 +41,11 @@ class MovieTag(Base):
     user_id = Column(Integer, primary_key=True)
     movie_id = Column(Integer, ForeignKey('movies.id'), primary_key=True)
     tag_id = Column(Integer, ForeignKey('tags.id'), primary_key=True)
+
+class Comment(Base):
+    __tablename__ = 'comments'
+
+    user_id = Column(Integer, primary_key=True)
+    movie_id = Column(Integer, ForeignKey('movies.id'), primary_key=True)
+    text = Column(String, nullable=False)
+    time = Column(DateTime, nullable=False)
