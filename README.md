@@ -9,5 +9,5 @@ uvicorn app.main:app --reload
 
 ## Initializing the database
 ```sh
-python3 init-db.py
+python3 populate.py
 ```
