@@ -103,57 +103,60 @@ async def upload_a_movie(
     movie_data = {'title': metadata.title}
 
     movie = Movie(**movie_data)
-    db.add(movie)
-    db.commit()
 
-    genre_names = [genre['name'] for genre in metadata.genres]
-    for genre_name in genre_names:
-        genre_name = genre_name.lower()
+    try:
+        db.add(movie)
+        db.commit()
+        db.refresh(movie)
 
-        genre = db.query(Genre).filter_by(name=genre_name).first()
+        genre_names = [genre['name'].lower() for genre in metadata.genres]
 
-        if not genre:
-            db.add(Genre(name=genre_name))
-            db.add(MovieGenre(movie_id=movie.id, genre_id=db.query(Genre).filter_by(name=genre_name).first().id))
-            db.commit()
-        else:
-            db.add(MovieGenre(movie_id=movie.id, genre_id=genre.id))
+        existing_genres = db.query(Genre).filter(Genre.name.in_(genre_names)).all()
+        existing_genre_names = {genre.name for genre in existing_genres}
 
-    db.commit()
+        new_genres = [
+            Genre(name=name)
+            for name in genre_names
+            if name not in existing_genre_names
+        ]
+
+        db.bulk_save_objects(new_genres)
+        db.commit()
+
+        all_genres = db.query(Genre).filter(Genre.name.in_(genre_names)).all()
+
+        genre_id_map = {genre.name: genre.id for genre in all_genres}
+
+        movie_genres = [
+            MovieGenre(movie_id=movie.id, genre_id=genre_id_map[name])
+            for name in genre_names
+        ]
+        db.bulk_save_objects(movie_genres)
+        db.commit()
+
+        return {
+            'id': movie.id
+        }
+    except Exception as e:
+        db.rollback()
+        response.status_code = 500
+
+        return {
+            'error': 'Internal Server Error'
+        }
 
 
-# @app.put('/', status_code=status.HTTP_401_UNAUTHORIZED)
-# async def update_a_movie(
-#     response: Response,
-#     metadata: Metadata,
-#     user_id: int = Depends(get_current_user_id),
-#     db: sql.orm.Session = Depends(get_connection),
-# ):
-#     if not user_is_admin(user_id):
-#         return
 
-#     movie_data = {'title': metadata.title}
+# TODO
+@app.put('/', status_code=status.HTTP_401_UNAUTHORIZED)
+async def update_a_movie(
+    response: Response,
+    metadata: Metadata,
+    user_id: int = Depends(get_current_user_id),
+    db: sql.orm.Session = Depends(get_connection),
+):
+    response.status_code = status.HTTP_501_NOT_IMPLEMENTED
 
-#     movie = Movie(**movie_data)
-#     db.add(movie)
-#     db.commit()
-
-#     genre_names = [genre['name'] for genre in metadata.genres]
-#     for genre_name in genre_names:
-#         genre_name = genre_name.lower()
-
-#         genre = db.query(Genre).filter_by(name=genre_name).first()
-
-#         if not genre:
-#             db.add(Genre(name=genre_name))
-#             db.add(MovieGenre(movie_id=movie.id, genre_id=db.query(Genre).filter_by(name=genre_name).first().id))
-#             db.commit()
-#         else:
-#             db.add(MovieGenre(movie_id=movie.id, genre_id=genre.id))
-
-#     db.commit()
-
-#     response.status_code = status.HTTP_200_OK
 
 @app.delete('/{id}')
 async def delete_a_movie(
