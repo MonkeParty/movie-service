@@ -37,12 +37,15 @@ class Tag(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False, unique=True)
 
+    __table_args__ = (Index('ix_tags_name_lower', func.lower(name), unique=True),)
+
 class MovieTag(Base):
     __tablename__ = 'movie_tags'
 
     user_id = Column(Integer, primary_key=True)
     movie_id = Column(Integer, ForeignKey('movies.id'), primary_key=True)
     tag_id = Column(Integer, ForeignKey('tags.id'), primary_key=True)
+    relevance = Column(Float)
 
 class Comment(Base):
     __tablename__ = 'comments'

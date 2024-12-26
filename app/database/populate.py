@@ -38,9 +38,9 @@ def populate_database():
         session.add_all([MovieGenre(**movie_genre) for movie_genre in movie_genres])
 
         movie_tags = [
-            {'user_id': 1, 'movie_id': 1, 'tag_id': 1}, # User 1 tagged The Matrix as 'Classic'
-            {'user_id': 2, 'movie_id': 2, 'tag_id': 4}, # User 2 tagged Inception as 'Thriller'
-            {'user_id': 3, 'movie_id': 3, 'tag_id': 5}  # User 3 tagged The Godfather as 'Romantic'
+            {'user_id': 1, 'movie_id': 1, 'tag_id': 1, 'relevance': 0.9}, # User 1 tagged The Matrix as 'Classic'
+            {'user_id': 2, 'movie_id': 2, 'tag_id': 4, 'relevance': 0.5}, # User 2 tagged Inception as 'Thriller'
+            {'user_id': 3, 'movie_id': 3, 'tag_id': 5, 'relevance': 0.2}  # User 3 tagged The Godfather as 'Romantic'
         ]
         session.add_all([MovieTag(**movie_tag) for movie_tag in movie_tags])
 

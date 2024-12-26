@@ -1,12 +1,12 @@
 from datetime import datetime
 
 
-from fastapi import FastAPI, Depends, Form, Response, status
+from fastapi import FastAPI, Depends, Form, HTTPException, Response, status
 from pydantic import BaseModel
 import sqlalchemy as sql
 
 
-from app.auth.auth import get_current_user_id, user_is_admin
+from app.auth.auth import can_user_action_on_movie, get_current_user_id, user_is_admin
 from app.database.connection import get_connection
 
 from app.database.models import *
@@ -31,11 +31,16 @@ async def get_movie_with_category(
 
 @app.post('/{id}/rate')
 async def rate_movie(
+    response: Response,
     id: int,
     rating: int = Form(..., ge=1, le=10),
     user_id: int = Depends(get_current_user_id),
     db: sql.orm.Session = Depends(get_connection)
 ):
+    if not can_user_action_on_movie(user_id, 'rate', id):
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        return
+
     existing_rating_query = db.query(Rating).filter_by(user_id=user_id, movie_id=id)
     existing_rating = existing_rating_query.first()
 
@@ -52,13 +57,71 @@ async def rate_movie(
 
     db.commit()
 
-@app.post('/{id}/comment')
-async def make_comment(
+
+class TagRequest(BaseModel):
+    name: str
+    relevance: float = Form(..., ge=0.1, le=1.0)
+
+@app.post('/{id}/tag')
+async def tag_movie(
+    response: Response,
     id: int,
-    text: str = Form(...),
+    tag: TagRequest,
     user_id: int = Depends(get_current_user_id),
     db: sql.orm.Session = Depends(get_connection)
 ):
+    if not can_user_action_on_movie(user_id, 'rate', id):
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        return
+
+    try:
+        db_tag = db.query(Tag).filter_by(name=tag.name.lower()).one_or_none()
+        if not db_tag:
+            db_tag = Tag(name=tag.name)
+            db.add(db_tag)
+            db.commit()
+            db.refresh(db_tag)
+
+        movie_tag = db.query(MovieTag).filter_by(
+            user_id=user_id,
+            movie_id=id,
+            tag_id=db_tag.id
+        ).one_or_none()
+
+        if not movie_tag: # create new movie tag
+            movie_tag = MovieTag(
+                user_id=user_id,
+                movie_id=id,
+                tag_id=db_tag.id,
+                relevance=tag.relevance
+            )
+            db.add(movie_tag)
+        else: # update the already set one
+            movie_tag.relevance = tag.relevance
+
+        db.commit()
+        return {
+            "msg": "Tag added successfully"
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+    db.commit()
+
+
+@app.post('/{id}/comment')
+async def make_comment(
+    response: Response,
+    id: int,
+    text: str,
+    user_id: int = Depends(get_current_user_id),
+    db: sql.orm.Session = Depends(get_connection)
+):
+    if not can_user_action_on_movie(user_id, 'comment', id):
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        return
+
     existing_comment_query = db.query(Comment).filter_by(user_id=user_id, movie_id=id)
     existing_comment = existing_comment_query.first()
 
@@ -77,10 +140,15 @@ async def make_comment(
 
 @app.delete('/{id}/comment')
 async def delete_comment(
+    response: Response,
     id: int,
     user_id: int = Depends(get_current_user_id),
     db: sql.orm.Session = Depends(get_connection)
 ):
+    if not can_user_action_on_movie(user_id, 'comment', id):
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        return
+
     db.execute(sql.delete(Comment).filter_by(user_id=user_id, movie_id=id))
     db.commit()
 
