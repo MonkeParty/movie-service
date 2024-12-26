@@ -51,9 +51,9 @@ async def rate_movie(
     user_id: int = Depends(get_current_user_id),
     db: sql.orm.Session = Depends(get_connection)
 ):
-    # if not can_user_action_on_movie(user_id, 'rate', id):
-    #     response.status_code = status.HTTP_401_UNAUTHORIZED
-    #     return
+    if not can_user_action_on_movie(user_id, 'rate', id):
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        return
 
     existing_rating_query = db.query(Rating).filter_by(user_id=user_id, movie_id=id)
     existing_rating = existing_rating_query.first()
