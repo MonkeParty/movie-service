@@ -16,4 +16,7 @@ class Settings(BaseSettings):
 
     auth_service_address: str
 
+    kafka_bootstrap_server: str
+    event_bus_topic_name: str
+
 settings = Settings()
