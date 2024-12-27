@@ -2,14 +2,20 @@ from datetime import datetime
 
 
 from fastapi import FastAPI, Depends, Form, HTTPException, Response, status
+from kafka import KafkaProducer
 from pydantic import BaseModel
 import sqlalchemy as sql
+import json
 
 
 from app.auth.auth import can_user_action_on_movie, get_current_user_id, user_is_admin
 from app.database.connection import get_connection
 
 from app.database.models import *
+from app.events.writer import KafkaEventWriter
+from app.events.events import Event, EventType
+
+from app.config import settings
 
 
 
@@ -28,6 +34,14 @@ async def get_movie_with_category(
 ):
     response.status_code = status.HTTP_501_NOT_IMPLEMENTED
 
+
+
+event_writer = KafkaEventWriter(
+    topic=settings.event_bus_topic_name,
+    kafka_producer=KafkaProducer(
+        bootstrap_servers=settings.kafka_bootstrap_server,
+    )
+)
 
 @app.post('/{id}/rate')
 async def rate_movie(
@@ -54,6 +68,23 @@ async def rate_movie(
             rating=rating,
             time=datetime.now()
         ))
+
+    genres = db.query(Genre.name).join(MovieGenre).filter(MovieGenre.movie_id == id).all()
+    genres = [genre.name for genre in genres]
+
+    tags = db.query(Tag.name).join(MovieTag).filter(MovieTag.movie_id == id).all()
+    tags = [tag.name for tag in tags]
+
+    event_writer.send_event(Event(
+        EventType.MovieRated,
+        json.dumps({
+            'user_id': user_id,
+            'movie_id': id,
+            'genres': genres,
+            'tags': tags,
+            'rating': rating,
+        })
+    ))
 
     db.commit()
 
@@ -101,11 +132,11 @@ async def tag_movie(
 
         db.commit()
         return {
-            "msg": "Tag added successfully"
+            'msg': 'Tag added successfully'
         }
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f'Internal server error: {str(e)}')
 
     db.commit()
 
