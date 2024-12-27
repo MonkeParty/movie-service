@@ -47,7 +47,7 @@ event_writer = KafkaEventWriter(
 async def rate_movie(
     response: Response,
     id: int,
-    rating: int = Form(..., ge=1, le=10),
+    rating: int = Form(..., ge=1, le=5),
     user_id: int = Depends(get_current_user_id),
     db: sql.orm.Session = Depends(get_connection)
 ):
