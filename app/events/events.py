@@ -9,6 +9,8 @@ class EventType(Enum):
 
     MovieRated = 'movr'
 
+    SetMovieFree = 'smfr'
+
 
 _event_type_members = EventType._member_map_.values()
 class EventTypeConstants:

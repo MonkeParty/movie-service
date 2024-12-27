@@ -187,6 +187,7 @@ async def delete_comment(
 class Metadata(BaseModel):
     title: str
     genres: list[dict[str, str]]
+    is_free: bool
 
 @app.post('/')
 async def upload_a_movie(
@@ -232,6 +233,12 @@ async def upload_a_movie(
         ]
         db.bulk_save_objects(movie_genres)
         db.commit()
+
+        if metadata.is_free:
+            event_writer.send_event(Event(
+                EventType.SetMovieFree,
+                movie.id,
+            ))
 
         return {
             'id': movie.id
