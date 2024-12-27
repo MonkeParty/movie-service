@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Index, Integer, String, Float, Time, ForeignKey, DateTime, func
 
-from .connection import Base
+from app.database.connection import Base
 
 
 class Movie(Base):

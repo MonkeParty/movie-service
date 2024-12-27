@@ -1,7 +1,6 @@
 from datetime import datetime
-from .models import Base, Movie, Rating, Genre, MovieGenre, Tag, MovieTag
-from . import connection
-
+from app.database.models import Base, Movie, Rating, Genre, MovieGenre, Tag, MovieTag
+from app.database import connection
 
 
 def populate_database():
